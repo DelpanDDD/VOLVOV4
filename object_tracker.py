@@ -2,6 +2,7 @@ import os
 # comment out below line to enable tensorflow logging outputs
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import time
+import pyttsx3
 import tensorflow as tf
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 if len(physical_devices) > 0:
@@ -39,6 +40,8 @@ flags.DEFINE_boolean('info', False, 'show detailed info of tracked objects')
 flags.DEFINE_boolean('count', False, 'count objects being tracked on screen')
 
 def main(_argv):
+    engine = pyttsx3.init()
+    object_detected = False
     # Definition of the parameters
     max_cosine_distance = 0.4
     nn_budget = None
@@ -213,6 +216,12 @@ def main(_argv):
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), color, 2)
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)+len(str(track.track_id)))*17, int(bbox[1])), color, -1)
             cv2.putText(frame, class_name + "-" + str(track.track_id),(int(bbox[0]), int(bbox[1]-10)),0, 0.75, (255,255,255),2)
+
+            # Озвучивание текста только при первом обнаружении объекта
+            if not object_detected:
+                engine.say(f"Обнаружен объект {class_name}")
+                engine.runAndWait()
+                object_detected = True
 
         # if enable info flag then print details about each track
             if FLAGS.info:
